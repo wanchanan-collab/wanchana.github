@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Work Simulation | FUTUREPATH</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-cyan: #00f2fe; --accent-blue: #4facfe; --accent-pink: #fa709a;
+            --glass-bg: rgba(10, 15, 25, 0.65); --glass-border: rgba(255, 255, 255, 0.15);
+            --text-main: #ffffff; --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #000; font-family: 'Kanit', 'Segoe UI', sans-serif; color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+        
+        .video-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+        .video-bg video { min-width: 100%; min-height: 100%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: cover; filter: brightness(0.3) blur(3px); }
+
+        /* เมนูแฮมเบอร์เกอร์ */
+        .menu-btn { position: fixed; z-index: 1000; right: 30px; top: 30px; width: 65px; height: 65px; cursor: pointer; display: flex; justify-content: center; align-items: center; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 50%; transition: 0.6s var(--ease-smooth); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); }
+        .burger, .burger::before, .burger::after { width: 26px; height: 2px; background: #fff; border-radius: 2px; transition: 0.5s var(--ease-smooth); position: absolute; }
+        .burger::before { content: ''; top: -9px; } .burger::after { content: ''; top: 9px; }
+        .open .burger { background: transparent; } .open .burger::before { transform: rotate(45deg); top: 0; } .open .burger::after { transform: rotate(-45deg); top: 0; }
+        
+        .glass-menu { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(30px); display: flex; justify-content: center; align-items: center; z-index: 900; clip-path: circle(0% at 93% 8%); transition: 0.9s var(--ease-smooth); }
+        .glass-menu.active { clip-path: circle(150% at 93% 8%); }
+        .menu-nav { list-style: none; text-align: center; }
+        .menu-nav li { margin: 25px 0; }
+        .menu-nav h1 { font-size: 1.8rem; margin-bottom: 20px; color: #fff; letter-spacing: 2px; }
+        .nav-link { font-size: 1.5rem; color: rgba(255,255,255,0.5); text-decoration: none; font-weight: 700; transition: 0.4s; letter-spacing: 2px; }
+        .nav-link:hover { color: #fff; letter-spacing:12px; text-shadow: 0 0 15px var(--accent-cyan); }
+
+        /* ส่วนเนื้อหาหลัก */
+        .main-content { position: relative; z-index: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-top: 100px; }
+        .header-title { text-align: center; margin-bottom: 20px; }
+        .header-title h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; background: linear-gradient(to right, var(--accent-cyan), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* =========================================
+           [อัปเดต] กล่องข้อมูลผู้ใช้ (จัดให้อยู่ใต้ Header และกว้างเท่า Workspace)
+           ========================================= */
+        .user-profile-card {
+            width: 100%;
+            max-width: 800px; /* กว้างเท่ากับ workspace-card */
+            background: rgba(20, 20, 35, 0.5);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            margin-bottom: 20px; /* ระยะห่างก่อนถึงกล่อง Workspace */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-info-group { display: flex; align-items: center; gap: 15px; }
+
+        .avatar-neon {
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+        }
+
+        .user-text { display: flex; flex-direction: column; line-height: 1.2; }
+        .user-role { font-size: 0.8rem; opacity: 0.7; color: #ddd; }
+        .user-name { font-size: 1.1rem; font-weight: 600; color: var(--accent-cyan); letter-spacing: 0.5px; }
+        
+        .btn-logout-text {
+            background: rgba(250, 112, 154, 0.05); 
+            border: 1px solid var(--accent-pink); 
+            color: var(--accent-pink);
+            padding: 8px 20px; 
+            border-radius: 30px;
+            font-size: 0.95rem; font-weight: 600; 
+            cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px; font-family: inherit;
+        }
+        .btn-logout-text:hover { 
+            background: var(--accent-pink); color: #fff; 
+            box-shadow: 0 0 15px rgba(250, 112, 154, 0.4); transform: translateY(-2px);
+        }
+
+        /* กล่องพื้นที่ทำงาน */
+        .workspace-card { width: 100%; max-width: 800px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 20px; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 10px; }
+        label { font-weight: bold; color: var(--accent-cyan); }
+        input[type="text"], textarea { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); color: white; font-family: inherit; font-size: 1rem; outline: none; transition: 0.3s; }
+        input[type="text"]:focus, textarea:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+        textarea { resize: vertical; min-height: 150px; }
+        
+        .primary-btn { padding: 15px 30px; border-radius: 30px; border: none; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: white; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; align-self: flex-start; }
+        .primary-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0, 242, 254, 0.4); }
+        .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .ai-box { background: rgba(0, 242, 254, 0.1); border-left: 4px solid var(--accent-cyan); padding: 15px 20px; border-radius: 0 10px 10px 0; line-height: 1.6; display: none; }
+
+        /* Responsive สำหรับมือถือ */
+        @media (max-width: 600px) {
+            .user-profile-card { padding: 12px 15px; }
+            .avatar-neon { width: 40px; height: 40px; font-size: 1rem; }
+            .user-name { font-size: 0.95rem; }
+            .btn-logout-text { padding: 6px 12px; font-size: 0.85rem; }
+            .btn-logout-text span { display: none; } /* ซ่อนตัวหนังสือให้เหลือแต่ไอคอน */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-bg">
+        <video autoplay muted loop playsinline>
+            <source src="vdo/vdobg.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="menu-btn" id="menu-btn"><div class="burger"></div></div>
+    <nav class="glass-menu" id="glass-menu">
+ <ul class="menu-nav">
+            <li><img src="img/logo1.png" width="80px" alt="Logo" style="margin-bottom:15px;" onerror="this.style.display='none'"></li>
+            <h1> FUTUREPATH AI</h1>
+            <li class="nav-item" style="transition-delay: 0.2s;"><a href="home.html" class="nav-link">หน้าหลัก</a></li>
+            <li class="nav-item" style="transition-delay: 0.4s;"><a href="assessment.html" class="nav-link">วิเคราะห์ศักยภาพและแนะแนวอาชีพ</a></li>
+            <li class="nav-item" style="transition-delay: 0.6s;"><a href="chat.html" class="nav-link">AI-ChatBot</a></li>
+            <li class="nav-item" style="transition-delay: 0.8s;"><a href="interview.html" class="nav-link">ระบบจำลองการสัมภาษณ์ด้วยเสียง</a></li>
+            <li class="nav-item" style="transition-delay: 1.0s;"><a href="simulation.html" class="nav-link">ทดลองทำงานจริงในสายงานที่คุณใฝ่ฝัน</a></li>
+            <li class="nav-item" style="transition-delay: 1.02s;"><a href="feedback.html" class="nav-link">แบบประเมินความพึงพอใจ</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <header class="header-title">
+            <h1>Workspace</h1>
+            <p style="opacity: 0.8; font-weight: 300;">ทดลองทำงานจริงในสายงานที่คุณใฝ่ฝัน</p>
+        </header>
+
+        <div class="user-profile-card">
+            <div class="user-info-group">
+                <div class="avatar-neon" id="user-avatar">??</div>
+                <div class="user-text">
+                    <span class="user-role">ระบบลงชื่อเข้าใช้งาน</span>
+                    <span class="user-name" id="user-name">กำลังตรวจสอบสิทธิ์...</span>
+                </div>
+            </div>
+            
+            <button class="btn-logout-text" onclick="triggerLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>ออกจากระบบ</span>
+            </button>
+        </div>
+
+        <div class="workspace-card">
+            <div class="input-group" id="step1">
+                <label>พิมพ์ตำแหน่งงานที่อยากทำในอนาคต</label>
+                <input type="text" id="job-title" placeholder="เช่น นักการตลาด, โปรแกรมเมอร์, กราฟิกดีไซเนอร์...">
+                <button class="primary-btn" id="btn-get-task">ขอโจทย์ทดลองงาน</button>
+            </div>
+
+            <div id="step2" style="display: none; flex-direction: column; gap: 20px;">
+                <div class="ai-box" id="task-box" style="display: block;"></div>
+                <div class="input-group">
+                    <label>📝 ลงมือทำผลงานของคุณที่นี่</label>
+                    <textarea id="user-work" placeholder="พิมพ์ผลงานหรือวิธีแก้ปัญหาของคุณ..."></textarea>
+                    <button class="primary-btn" id="btn-submit-work">ส่งผลงานให้หัวหน้าตรวจ</button>
+                </div>
+            </div>
+
+            <div id="step3" style="display: none;">
+                <label>📊 ผลการประเมินจาก AI</label>
+                <div class="ai-box" id="feedback-box" style="display: block; border-left-color: var(--accent-pink); background: rgba(250, 112, 154, 0.1);"></div>
+                <button class="primary-btn" style="margin-top: 20px;" onclick="location.reload()">ลองตำแหน่งอื่น</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ระบบตรวจสอบสิทธิ์และออกจากระบบ
+        const sessionName = localStorage.getItem('futurepath_user_name'); 
+
+        if (!sessionName) {
+            alert("🛑 กรุณาเข้าสู่ระบบก่อนเข้าใช้งานระบบทดลองทำงาน (Workspace)");
+            window.location.href = 'login.html'; 
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionName) {
+                document.getElementById('user-name').innerText = sessionName;
+                document.getElementById('user-avatar').innerText = sessionName.substring(0, 2);
+            }
+        });
+
+        function triggerLogout() {
+            if (confirm("คุณต้องการออกจากระบบ ใช่หรือไม่?")) {
+                localStorage.removeItem('futurepath_user_name');
+                localStorage.removeItem('futurepath_user_email');
+                window.location.href = 'index.html'; 
+            }
+        }
+
+        // ระบบควบคุมเมนู 
+        const menuBtn = document.getElementById('menu-btn');
+        const glassMenu = document.getElementById('glass-menu');
+        menuBtn.onclick = () => { menuBtn.classList.toggle('open'); glassMenu.classList.toggle('active'); };
+        
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.onclick = () => { menuBtn.classList.remove('open'); glassMenu.classList.remove('active'); }
+        });
+
+        // ระบบขอโจทย์และส่งตรวจ
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws326ntDLnAsIJBPdczuIA0NDihar41UIlfnE2EsveonvCVQW9y10c5wD9yYBLhogH/exec"; 
+        let currentTask = "";
+
+        document.getElementById('btn-get-task').addEventListener('click', async () => {
+            const jobTitle = document.getElementById('job-title').value.trim();
+            if (!jobTitle) return alert("โปรดระบุตำแหน่งงานก่อนครับ");
+            
+            const btn = document.getElementById('btn-get-task');
+            btn.innerText = "กำลังสร้างโจทย์..."; btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'get_task', jobTitle: jobTitle }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    currentTask = data.task;
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'flex';
+                    document.getElementById('task-box').innerHTML = "<strong>หัวหน้างาน:</strong><br><br>" + data.task.replace(/\n/g, '<br>');
+                } else { alert("Error: " + data.message); }
+            } catch (err) { alert("เชื่อมต่อล้มเหลว"); }
+            btn.innerText = "ขอโจทย์ทดลองงาน"; btn.disabled = false;
+        });
+
+        document.getElementById('btn-submit-work').addEventListener('click', async () => {
+            const jobTitle = document.getElementById('job-title').value.trim();
+            const userWork = document.getElementById('user-work').value.trim();
+            if (!userWork) return alert("โปรดพิมพ์ผลงานก่อนส่งครับ");
+            
+            const btn = document.getElementById('btn-submit-work');
+            btn.innerText = "กำลังตรวจผลงาน..."; btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'evaluate_work', jobTitle: jobTitle, task: currentTask, userWork: userWork }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('step3').style.display = 'block';
+                    document.getElementById('feedback-box').innerHTML = data.feedback.replace(/\n/g, '<br>');
+                } else { alert("Error: " + data.message); }
+            } catch (err) { alert("เชื่อมต่อล้มเหลว"); }
+            btn.innerText = "ส่งผลงานให้หัวหน้าตรวจ"; btn.disabled = false;
+        });
+    </script>
+</body>
+</html>

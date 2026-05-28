@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview | FUTUREPATH</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- 4. Navigation Menu --- */
+        .menu-btn {
+            position: fixed; z-index: 1000; right: 30px; top: 30px;
+            width: 60px; height: 60px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            background: var(--glass-bg); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 50%;
+            transition: all 0.6s var(--ease-smooth);
+        }
+        .menu-btn:hover { transform: scale(1.1) rotate(90deg); border-color: var(--accent-color); }
+
+        .burger, .burger::before, .burger::after {
+            width: 24px; height: 2px; background: #fff; border-radius: 2px; 
+            transition: all 0.5s var(--ease-smooth); position: absolute;
+        }
+        .burger::before { content: ''; top: -8px; }
+        .burger::after { content: ''; top: 8px; }
+        .open .burger { transform: rotate(360deg); background: transparent; }
+        .open .burger::before { transform: rotate(45deg); top: 0; }
+        .open .burger::after { transform: rotate(-45deg); top: 0; }
+
+        .glass-menu {
+            position: fixed; inset: 0; background: rgba(10, 10, 25, 0.1);
+            backdrop-filter: blur(40px) saturate(150%); display: flex; 
+            justify-content: center; align-items: center; z-index: 900;
+            clip-path: circle(0% at 93% 8%); transition: clip-path 0.9s var(--ease-smooth);
+        }
+        .glass-menu.active { clip-path: circle(150% at 93% 8%); }
+        .menu-nav { list-style: none; text-align: center; }
+        .nav-item { margin: 35px 0; opacity: 0; transform: translateY(40px); transition: all 0.8s var(--ease-smooth); }
+        .glass-menu.active .nav-item { opacity: 1; transform: translateY(0); }
+        .nav-link { font-size: 1.5rem; color: rgba(255, 255, 255, 0.2); text-decoration: none; font-weight: 800; text-transform: uppercase; letter-spacing: 5px; transition: all 0.5s var(--ease-smooth); }
+        .nav-link:hover { color: #fff; letter-spacing: 12px; text-shadow: 0 0 15px var(--accent-cyan); }
+
+
+
+
+        /* --- ตั้งค่าสีสัน --- */
+        :root {
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-pink: #fa709a;
+            --accent-orange: #fee140;
+            --glass-bg: rgba(10, 15, 25, 0.6); 
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-main: #ffffff;
+            --ease-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #000;
+            font-family: 'Segoe UI', Roboto, 'Kanit', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body.menu-open { overflow: hidden; } /* ซ่อนแถบเลื่อนเวลาเปิดเมนู */
+
+        /* --- พื้นหลังวิดีโอ --- */
+        .video-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden;
+        }
+        .video-bg video {
+            min-width: 100%; min-height: 100%;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.3) blur(3px);
+        }
+
+        /* =========================================
+           ✨ ส่วนที่เพิ่มเข้ามาใหม่: กล่องผู้ใช้งานและอวตาร์
+           ========================================= */
+        .user-profile-card {
+            width: 100%;
+            max-width: 800px; /* กว้างเท่ากับ chat-container */
+            background: rgba(20, 20, 35, 0.5);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            margin-bottom: 20px; /* ระยะห่างก่อนถึงกล่องแชท */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-info-group { display: flex; align-items: center; gap: 15px; }
+
+        .avatar-neon {
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+        }
+
+        .user-text { display: flex; flex-direction: column; line-height: 1.2; }
+        .user-role { font-size: 0.8rem; opacity: 0.7; color: #ddd; }
+        .user-name { font-size: 1.1rem; font-weight: 600; color: var(--accent-cyan); letter-spacing: 0.5px; }
+        
+        .btn-logout-text {
+            background: rgba(250, 112, 154, 0.05); 
+            border: 1px solid var(--accent-pink); 
+            color: var(--accent-pink);
+            padding: 8px 20px; 
+            border-radius: 30px;
+            font-size: 0.95rem; font-weight: 600; 
+            cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px; font-family: inherit;
+        }
+        .btn-logout-text:hover { 
+            background: var(--accent-pink); color: #fff; 
+            box-shadow: 0 0 15px rgba(250, 112, 154, 0.4); transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            .user-profile-card { padding: 12px 15px; }
+            .avatar-neon { width: 40px; height: 40px; font-size: 1rem; }
+            .user-name { font-size: 0.95rem; }
+            .btn-logout-text { padding: 6px 12px; font-size: 0.85rem; }
+            .btn-logout-text span { display: none; } /* ซ่อนตัวหนังสือบนมือถือ */
+        }
+
+        /* =========================================
+           Hamburger Menu 
+           ========================================= */
+        .menu-btn {
+            position: fixed; z-index: 1000; right: 30px; top: 30px;
+            width: 65px; height: 65px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 50%;
+            transition: 0.6s var(--ease-smooth);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        .menu-btn:hover { 
+            transform: scale(1.1); 
+            border-color: var(--accent-cyan); 
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+        }
+
+        .burger, .burger::before, .burger::after {
+            width: 26px; height: 2px; background: #fff; border-radius: 2px; 
+            transition: 0.5s var(--ease-smooth); position: absolute;
+        }
+        .burger::before { content: ''; top: -9px; }
+        .burger::after { content: ''; top: 9px; }
+        
+        .open .burger { background: transparent; }
+        .open .burger::before { transform: rotate(45deg); top: 0; }
+        .open .burger::after { transform: rotate(-45deg); top: 0; }
+
+        .glass-menu {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(30px); display: flex; 
+            justify-content: center; align-items: center; z-index: 900;
+            clip-path: circle(0% at 93% 8%); 
+            transition: 0.9s var(--ease-smooth);
+        }
+        .glass-menu.active { clip-path: circle(150% at 93% 8%); }
+
+        .nav-links { list-style: none; text-align: center; }
+        .nav-links li { margin: 30px 0; opacity: 0; transform: translateY(30px); transition: 0.5s; }
+        .active li { opacity: 1; transform: translateY(0); transition-delay: 0.4s; }
+
+        .nav-links a {
+            font-size: 2.5rem; color: rgba(255,255,255,0.4); text-decoration: none; 
+            font-weight: 800; text-transform: uppercase; letter-spacing: 5px; transition: 0.4s;
+        }
+        .nav-links a:hover { 
+            color: #fff; letter-spacing: 12px; 
+            text-shadow: 0 0 15px var(--accent-cyan), 0 0 30px var(--accent-pink); 
+        }
+
+        /* --- เนื้อหาหลักและแชท --- */
+        .main-content {
+            position: relative; z-index: 1; padding: 40px 20px;
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; /* เปลี่ยนจาก height เป็น min-height เพื่อกันหน้าจอโดนตัด */
+        }
+
+        .header-title { text-align: center; margin-bottom: 20px; }
+        .header-title h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900;
+            background: linear-gradient(to right, var(--accent-cyan), var(--accent-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 0px 5px 15px rgba(0, 242, 254, 0.2);
+        }
+
+        .chat-container {
+            width: 100%; max-width: 800px; height: 65vh;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
+
+        .chat-box {
+            flex-grow: 1; padding: 25px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .message { 
+            max-width: 75%; padding: 15px 20px; border-radius: 20px; 
+            line-height: 1.5; font-size: 1.05rem; 
+        }
+        .msg-ai { 
+            align-self: flex-start; 
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(79, 172, 254, 0.15)); 
+            border: 1px solid rgba(0, 242, 254, 0.4); 
+            border-bottom-left-radius: 5px; box-shadow: 0 5px 15px rgba(0, 242, 254, 0.1);
+        }
+        .msg-user { 
+            align-self: flex-end; 
+            background: linear-gradient(135deg, rgba(250, 112, 154, 0.15), rgba(254, 225, 64, 0.15)); 
+            border: 1px solid rgba(250, 112, 154, 0.4); 
+            border-bottom-right-radius: 5px; box-shadow: 0 5px 15px rgba(250, 112, 154, 0.1);
+        }
+
+        .chat-input-area {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 25px; background: rgba(0, 0, 0, 0.4); border-top: 1px solid var(--glass-border);
+        }
+
+        .status-text {
+            font-size: 0.95rem; color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 15px; font-weight: 300; transition: 0.3s;
+        }
+
+        .mic-btn {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); 
+            border: none; border-radius: 50%; width: 75px; height: 75px; cursor: pointer; font-size: 2.2rem;
+            display: flex; justify-content: center; align-items: center; color: white; transition: 0.4s;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+        .mic-btn:hover { 
+            transform: scale(1.1) translateY(-5px); 
+            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.7); 
+        }
+        .mic-btn.recording {
+            background: linear-gradient(135deg, #ff0844, #ffb199); 
+            box-shadow: 0 0 20px rgba(255, 8, 68, 0.5); animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0.7); }
+            70% { transform: scale(1.15); box-shadow: 0 0 0 20px rgba(255, 8, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-bg">
+        <video autoplay muted loop playsinline>
+            <source src="vdo/vdobg.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="menu-btn" id="menu-btn">
+        <div class="burger"></div>
+    </div>
+
+        <nav class="glass-menu" id="glass-menu">
+         
+ <ul class="menu-nav">
+            <li><img src="img/logo1.png" width="80px" alt="Logo" style="margin-bottom:15px;" onerror="this.style.display='none'"></li>
+            <h1> FUTUREPATH AI</h1>
+            <li class="nav-item" style="transition-delay: 0.2s;"><a href="home.html" class="nav-link">หน้าหลัก</a></li>
+            <li class="nav-item" style="transition-delay: 0.4s;"><a href="assessment.html" class="nav-link">วิเคราะห์ศักยภาพและแนะแนวอาชีพ</a></li>
+            <li class="nav-item" style="transition-delay: 0.6s;"><a href="chat.html" class="nav-link">AI-ChatBot</a></li>
+            <li class="nav-item" style="transition-delay: 0.8s;"><a href="interview.html" class="nav-link">ระบบจำลองการสัมภาษณ์ด้วยเสียง</a></li>
+            <li class="nav-item" style="transition-delay: 1.0s;"><a href="simulation.html" class="nav-link">ทดลองทำงานจริงในสายงานที่คุณใฝ่ฝัน</a></li>
+            <li class="nav-item" style="transition-delay: 1.02s;"><a href="feedback.html" class="nav-link">แบบประเมินความพึงพอใจ</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <header class="header-title">
+            <h1>AI Interviewer</h1>
+            <p style="opacity: 0.8; font-weight: 300; letter-spacing: 1px; margin-top: 5px;">ระบบจำลองการสัมภาษณ์ด้วยเสียง</p>
+        </header>
+
+        <div class="user-profile-card">
+            <div class="user-info-group">
+                <div class="avatar-neon" id="user-avatar">??</div>
+                <div class="user-text">
+                    <span class="user-role">ระบบลงชื่อเข้าใช้งาน</span>
+                    <span class="user-name" id="user-name">กำลังตรวจสอบสิทธิ์...</span>
+                </div>
+            </div>
+            
+            <button class="btn-logout-text" onclick="triggerLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>ออกจากระบบ</span>
+            </button>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-box" id="chat-box">
+                <div class="message msg-ai">สวัสดีครับ! ผมคือ AI ผู้สัมภาษณ์ กดปุ่มไมค์ด้านล่าง แล้วแนะนำตัวให้ผมรู้จักหน่อยครับ</div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div id="status-text" class="status-text">คลิกที่ไมโครโฟนเพื่อเริ่มพูด</div>
+                <button id="mic-btn" class="mic-btn" title="คลิกเพื่อพูด">🎙️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================
+        // ✨ ระบบตรวจสอบสิทธิ์และออกจากระบบ
+        // =========================================
+        const sessionName = localStorage.getItem('futurepath_user_name'); 
+
+        if (!sessionName) {
+            alert("🛑 กรุณาเข้าสู่ระบบก่อนเข้าใช้งานระบบสัมภาษณ์ (AI Interview)");
+            window.location.href = 'login.html'; 
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionName) {
+                document.getElementById('user-name').innerText = sessionName;
+                document.getElementById('user-avatar').innerText = sessionName.substring(0, 2);
+            }
+        });
+
+        function triggerLogout() {
+            if (confirm("คุณต้องการออกจากระบบ ใช่หรือไม่?")) {
+                localStorage.removeItem('futurepath_user_name');
+                localStorage.removeItem('futurepath_user_email');
+                window.location.href = 'index.html'; 
+            }
+        }
+
+        // =========================================
+        // สคริปต์ควบคุมเมนูแฮมเบอร์เกอร์
+        // =========================================
+        const menuBtnHamburger = document.getElementById('menu-btn');
+        const glassMenu = document.getElementById('glass-menu');
+        
+        menuBtnHamburger.onclick = () => {
+            menuBtnHamburger.classList.toggle('open');
+            glassMenu.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
+        };
+
+        // =========================================
+        // ระบบจำลองสัมภาษณ์และอัดเสียง
+        // =========================================
+        const chatBox = document.getElementById('chat-box');
+        const micBtn = document.getElementById('mic-btn');
+        const statusText = document.getElementById('status-text');
+
+        // ⚠️ ใส่ SCRIPT_URL Google Apps Script ของคุณที่นี่
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws326ntDLnAsIJBPdczuIA0NDihar41UIlfnE2EsveonvCVQW9y10c5wD9yYBLhogH/exec"; 
+
+        let chatHistory = []; 
+
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message');
+            msgDiv.classList.add(sender === 'user' ? 'msg-user' : 'msg-ai');
+            msgDiv.textContent = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'th-TH';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        async function sendToAI(userText) {
+            appendMessage(userText, 'user');
+            chatHistory.push({ role: "student", text: userText });
+            
+            micBtn.classList.remove('recording');
+            micBtn.style.pointerEvents = 'none'; 
+            statusText.innerHTML = "AI กำลังประเมินและคิดคำถาม... <span style='color: var(--accent-cyan);'>โปรดรอสักครู่✨</span>";
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'interview', history: chatHistory }),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    appendMessage(data.reply, 'ai');
+                    chatHistory.push({ role: "interviewer", text: data.reply });
+                    speakText(data.reply);
+                } else {
+                    appendMessage("ระบบหลังบ้านแจ้งว่า: " + data.message, 'ai');
+                }
+            } catch (error) {
+                appendMessage("ไม่สามารถเชื่อมต่อระบบหลังบ้านได้ (ตรวจสอบ URL)", 'ai');
+            } finally {
+                micBtn.style.pointerEvents = 'auto';
+                statusText.textContent = "คลิกที่ไมโครโฟนเพื่อตอบคำถาม";
+            }
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'th-TH';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                micBtn.classList.add('recording');
+                statusText.innerHTML = "<span style='color: #ffb199;'>กำลังฟังเสียงของคุณ...</span> (พูดเสร็จแล้วรอสักครู่)";
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.trim();
+                if (transcript !== "") sendToAI(transcript);
+            };
+
+            recognition.onend = function() {
+                if (statusText.textContent.includes("กำลังฟังเสียง")) {
+                    micBtn.classList.remove('recording');
+                    statusText.textContent = "คลิกที่ไมโครโฟนเพื่อเริ่มพูด";
+                }
+            };
+
+            micBtn.addEventListener('click', () => {
+                micBtn.classList.contains('recording') ? recognition.stop() : recognition.start();
+            });
+
+        } else {
+            statusText.innerHTML = "<span style='color: #ffb199;'>เบราว์เซอร์นี้ไม่รองรับระบบสั่งงานด้วยเสียง</span>";
+            micBtn.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
